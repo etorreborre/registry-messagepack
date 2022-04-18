@@ -1,0 +1,17 @@
+resolver: lts-18.18
+
+packages:
+- '.'
+
+extra-deps:
+  - git: 'https://github.com/msgpack/msgpack-haskell'
+    commit: f52a5d2db620a7be70810eca648fd152141f8b14
+    subdirs:
+      - msgpack
+
+  - registry-0.2.1.0
+  - registry-hedgehog-0.6.0.0
+
+flags: {}
+
+extra-package-dbs: []
