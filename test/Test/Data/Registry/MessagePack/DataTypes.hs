@@ -21,6 +21,11 @@ data Delivery
   | InPerson Person DateTime
   deriving (Eq, Show)
 
+data Path =
+  File Int
+  | Directory [Path]
+  deriving (Eq, Show)
+
 -- * EXAMPLES
 
 email1 :: Email
@@ -40,3 +45,6 @@ delivery2 = InPerson person1 datetime1
 
 datetime1 :: DateTime
 datetime1 = DateTime $ UTCTime (fromGregorian 2022 4 18) 12
+
+path1 :: Path
+path1 = Directory [Directory [Directory [File 1], Directory [File 2]], File 3]

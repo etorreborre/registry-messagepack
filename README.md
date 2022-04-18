@@ -81,6 +81,8 @@ The `makeEncoder` function makes the following functions:
   InPerson a1 a2 -> ObjectArray [ObjectInt 2, encode e1 a1, encode e2 a2]
 ```
 
+__NOTE__ this function does not support recursive data types (and much less mutually recursive data types)
+
 ### Decoders
 
 #### Example
@@ -157,3 +159,5 @@ The `makeDecoder` function makes the following functions:
   ObjectArray [ObjectInt 2, o1, o2] -> InPerson <$> decode d1 o1 <*> decode d2 o2
   other -> Error ("not a valid Delivery: " <> show other)
 ```
+
+__NOTE__ this function does not support recursive data types (and much less mutually recursive data types)
