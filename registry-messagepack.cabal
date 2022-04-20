@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           registry-messagepack
-version:        0.1.0.0
+version:        0.1.0.1
 synopsis:       MessagePack encoders / decoders
 description:    This library provides encoders / decoders which can be easily customized for the MessagePack format.
 category:       Data
@@ -118,6 +118,7 @@ test-suite spec
     , protolude ==0.3.*
     , registry ==0.2.*
     , registry-hedgehog
+    , registry-messagepack
     , tasty
     , template-haskell >=2.13 && <3.0
     , text ==1.*
