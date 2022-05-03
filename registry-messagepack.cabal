@@ -62,7 +62,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers >=0.2 && <1
-    , msgpack >=1.1 && <2
+    , msgpack >=1.2 && <2
     , protolude ==0.3.*
     , registry ==0.2.*
     , template-haskell >=2.13 && <3.0
@@ -116,7 +116,7 @@ test-suite spec
   build-depends:
       base >=4.7 && <5
     , containers >=0.2 && <1
-    , msgpack >=1.1 && <2
+    , msgpack >=1.2 && <2
     , protolude ==0.3.*
     , registry ==0.2.*
     , registry-hedgehog

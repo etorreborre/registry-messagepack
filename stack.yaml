@@ -4,8 +4,8 @@ packages:
 - '.'
 
 extra-deps:
-  - git: 'https://github.com/msgpack/msgpack-haskell'
-    commit: f52a5d2db620a7be70810eca648fd152141f8b14
+  - git: 'https://github.com/RaitoBezarius/msgpack-haskell'
+    commit: 58fad1691b8d8105238b2febdd86f15377385fcc
     subdirs:
       - msgpack
 
