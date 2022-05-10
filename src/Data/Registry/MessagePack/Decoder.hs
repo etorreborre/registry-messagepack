@@ -70,6 +70,13 @@ messagePackDecoder = fun (messagePackDecoderOf @a)
 messagePackDecoderOf :: MessagePack a => Decoder a
 messagePackDecoderOf = Decoder fromObject
 
+-- | Create a Decoder from a Read instance
+readDecoder :: forall a. (Typeable a, Read a) => Typed (Decoder String -> Decoder a)
+readDecoder = fun readDecoderOf
+
+readDecoderOf :: forall a. (Read a) => Decoder String -> Decoder a
+readDecoderOf ds = Decoder $ decode ds >=> (either Error Success . readEither)
+
 -- * COMBINATORS
 
 -- | Add a Maybe (Decoder a) to a registry of decoders

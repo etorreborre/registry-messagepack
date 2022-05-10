@@ -20,6 +20,7 @@ import Data.Registry.MessagePack.TH
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Protolude hiding (Type)
+import Prelude (String)
 
 -- * ENCODER DATA TYPE
 
@@ -41,6 +42,13 @@ messagePackEncoder = fun (messagePackEncoderOf @a)
 
 messagePackEncoderOf :: MessagePack a => Encoder a
 messagePackEncoderOf = Encoder toObject
+
+-- | Create an encoder from a MessagePack instance
+showEncoder :: forall a. (Typeable a, Show a) => Typed (Encoder String -> Encoder a)
+showEncoder = fun showEncoderOf
+
+showEncoderOf :: forall a. (Show a) => Encoder String -> Encoder a
+showEncoderOf e = Encoder $ encode e . show
 
 -- * COMBINATORS
 
