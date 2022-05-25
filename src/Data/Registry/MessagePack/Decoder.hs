@@ -15,6 +15,7 @@ import Data.List (nub)
 import Data.MessagePack
 import Data.Registry hiding (Result)
 import Data.Registry.Internal.Types
+import Data.Registry.MessagePack.Options
 import Data.Registry.MessagePack.TH
 import qualified Data.Vector as Vector
 import Language.Haskell.TH
@@ -150,31 +151,48 @@ showType = show (typeRep (Proxy :: Proxy a))
 -- | Make a Decoder for a given data type
 --   Usage: $(makeDecoder ''MyDataType <: otherDecoders)
 makeDecoder :: Name -> ExpQ
-makeDecoder typeName = appE (varE $ mkName "fun") $ do
+makeDecoder = makeDecoderWith defaultOptions
+
+-- | Make a Decoder for a given data type, where all constructors and decoded types are qualified
+--   Usage: $(makeDecoderQualified ''MyDataType <: otherDecoders)
+makeDecoderQualified :: Name -> ExpQ
+makeDecoderQualified = makeDecoderWith (Options identity)
+
+-- | Make a Decoder for a given data type, where all constructors and decoded types are qualified
+--   Usage: $(makeDecoderQualifiedLast ''MyDataType <: otherDecoders)
+makeDecoderQualifiedLast :: Name -> ExpQ
+makeDecoderQualifiedLast = makeDecoderWith (Options qualifyWithLastName)
+
+-- | Make a Decoder with a given set of options
+--   Usage: $(makeDecoderWith (Options qualify) ''MyDataType <: otherDecoders)
+makeDecoderWith :: Options -> Name -> ExpQ
+makeDecoderWith options typeName = appE (varE $ mkName "fun") $ do
   info <- reify typeName
   case info of
     TyConI (NewtypeD _context _name _typeVars _kind (RecC constructor [(_, _, other)]) _deriving) -> do
       -- \(a::Decoder OldType) -> fmap NewType d
-      lamE [sigP (varP $ mkName "d") (appT (conT $ mkName "Decoder") (pure other))] (appE (appE (varE $ mkName "fmap") (conE . mkName $ show constructor)) (varE $ mkName "d"))
+      let cName = mkName $ show $ makeName options constructor
+      lamE [sigP (varP $ mkName "d") (appT (conT $ mkName "Decoder") (pure other))] (appE (appE (varE $ mkName "fmap") (conE cName)) (varE $ mkName "d"))
     TyConI (NewtypeD _context _name _typeVars _kind (NormalC constructor [(_, other)]) _deriving) -> do
       -- \(a::Decoder OldType) -> fmap NewType d
-      lamE [sigP (varP $ mkName "d") (appT (conT $ mkName "Decoder") (pure other))] (appE (appE (varE $ mkName "fmap") (conE . mkName $ show constructor)) (varE $ mkName "d"))
+      let cName = mkName $ show $ makeName options constructor
+      lamE [sigP (varP $ mkName "d") (appT (conT $ mkName "Decoder") (pure other))] (appE (appE (varE $ mkName "fmap") (conE cName)) (varE $ mkName "d"))
     TyConI (DataD _context _name _typeVars _kind constructors _deriving) -> do
       case constructors of
         [] -> do
           qReport True "can not make an Decoder for an empty data type"
           fail "decoders creation failed"
-        [c] -> makeConstructorDecoder typeName c
-        _ -> makeConstructorsDecoder typeName constructors
+        [c] -> makeConstructorDecoder options typeName c
+        _ -> makeConstructorsDecoder options typeName constructors
     other -> do
       qReport True ("can only create decoders for an ADT, got: " <> show other)
       fail "decoders creation failed"
 
 -- | Make a Decoder for a single Constructor, where each field of the constructor is encoded as an element of an ObjectArray
-makeConstructorDecoder :: Name -> Con -> ExpQ
-makeConstructorDecoder typeName c = do
+makeConstructorDecoder :: Options -> Name -> Con -> ExpQ
+makeConstructorDecoder options typeName c = do
   ts <- typesOf c
-  cName <- nameOf c
+  cName <- makeName options <$> nameOf c
   let decoderParameters = (\(t, n) -> sigP (varP (mkName $ "d" <> show n)) (appT (conT $ mkName "Decoder") (pure t))) <$> zip ts [0 ..]
   let paramP = varP (mkName "o")
   let paramE = varE (mkName "o")
@@ -185,7 +203,7 @@ makeConstructorDecoder typeName c = do
           (normalB (applyDecoder cName [0 .. length ts - 1]))
           []
 
-  let decoded = caseE paramE [matchClause, makeErrorClause typeName]
+  let decoded = caseE paramE [matchClause, makeErrorClause options typeName]
 
   -- (\(d1::Decoder Type1) (d2::Decoder Type2) ... -> Decoder (\case
   --     ObjectArray (toList -> [o1, o2, ...]) -> Constructor <$> decode d1 o1 <*> decode d2 o2 ...))
@@ -196,14 +214,14 @@ makeConstructorDecoder typeName c = do
 --     - each constructor is specified by an ObjectArray [ObjectInt n, o1, o2, ...]
 --     - n specifies the number of the constructor
 --     - each object in the array represents a constructor field
-makeConstructorsDecoder :: Name -> [Con] -> ExpQ
-makeConstructorsDecoder typeName cs = do
+makeConstructorsDecoder :: Options -> Name -> [Con] -> ExpQ
+makeConstructorsDecoder options typeName cs = do
   ts <- nub . join <$> for cs typesOf
   let decoderParameters = (\(t, n) -> sigP (varP (mkName $ "d" <> show n)) (appT (conT $ mkName "Decoder") (pure t))) <$> zip ts [0 ..]
   let paramP = varP (mkName "o")
   let paramE = varE (mkName "o")
-  let matchClauses = uncurry (makeMatchClause ts) <$> zip cs [0 ..]
-  let errorClause = makeErrorClause typeName
+  let matchClauses = uncurry (makeMatchClause options ts) <$> zip cs [0 ..]
+  let errorClause = makeErrorClause options typeName
   let decoded = caseE paramE (matchClauses <> [errorClause])
 
   -- (\(d1::Decoder Type1) (d2::Decoder Type2) ... -> Decoder (\case
@@ -213,24 +231,24 @@ makeConstructorsDecoder typeName cs = do
 
 -- | Return an error if an object is not an ObjectArray as expected
 --   other -> Error (mconcat ["not a valid ", show typeName, ": ", show other])
-makeErrorClause :: Name -> MatchQ
-makeErrorClause typeName = do
+makeErrorClause :: Options -> Name -> MatchQ
+makeErrorClause options typeName = do
   let errorMessage =
         appE (varE $ mkName "mconcat") $
           listE
             [ litE (StringL "not a valid "),
-              litE (StringL $ show typeName),
+              litE (StringL . show $ makeName options typeName),
               litE (StringL ": "),
               appE (varE $ mkName "show") (varE $ mkName "_1")
             ]
   match (varP $ mkName "_1") (normalB (appE (conE $ mkName "Error") errorMessage)) []
 
 -- | Decode the nth constructor of a data type
-makeMatchClause :: [Type] -> Con -> Integer -> MatchQ
-makeMatchClause allTypes c constructorIndex = do
+makeMatchClause :: Options -> [Type] -> Con -> Integer -> MatchQ
+makeMatchClause options allTypes c constructorIndex = do
   ts <- typesOf c
   constructorTypes <- fmap snd <$> indexConstructorTypes allTypes ts
-  cName <- nameOf c
+  cName <- makeName options <$> nameOf c
   let paramsP = conP (mkName "ObjectInt") [litP (IntegerL constructorIndex)] : ((\n -> varP $ mkName $ "o" <> show n) <$> constructorTypes)
   match
     (conP (mkName "ObjectArray") [viewP (varE (mkName "toList")) (listP paramsP)])

@@ -1,5 +1,6 @@
 module Test.Data.Registry.MessagePack.DataTypes where
 
+import Data.Registry.MessagePack.Options
 import Data.Time
 import Protolude
 
@@ -21,9 +22,14 @@ data Delivery
   | InPerson Person DateTime
   deriving (Eq, Show)
 
-data Path =
-  File Int
+data Path
+  = File Int
   | Directory [Path]
+  deriving (Eq, Show)
+
+data BoxedValues =
+  OptionalValue (Maybe Int)
+  | ListValue [Text]
   deriving (Eq, Show)
 
 -- * EXAMPLES
@@ -48,3 +54,14 @@ datetime1 = DateTime $ UTCTime (fromGregorian 2022 4 18) 12
 
 path1 :: Path
 path1 = Directory [Directory [Directory [File 1], Directory [File 2]], File 3]
+
+-- | When options are used with the makeEncoderWith/DecoderWith functions they must
+--   be defined in another file
+qualifiedAsOptions :: Options
+qualifiedAsOptions = Options qualified
+
+qualifiedOptions :: Options
+qualifiedOptions = Options $ qualifyAs "Test.Data.Registry.MessagePack.DataTypes"
+
+qualifiedWithLastOptions :: Options
+qualifiedWithLastOptions = Options {modifyTypeName = qualifyWithLastName}

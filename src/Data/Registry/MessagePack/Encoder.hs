@@ -16,6 +16,7 @@ import Data.List (nub)
 import Data.MessagePack
 import Data.Registry hiding (Result)
 import Data.Registry.Internal.Types
+import Data.Registry.MessagePack.Options
 import Data.Registry.MessagePack.TH
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
@@ -96,35 +97,52 @@ nonEmptyOfEncoder (Encoder ea) = Encoder $ \as -> toObject $ ea <$> as
 -- | Make an Encoder for a given data type
 --   Usage: $(makeEncoder ''MyDataType <: otherEncoders)
 makeEncoder :: Name -> ExpQ
-makeEncoder encodedType = appE (varE $ mkName "fun") $ do
+makeEncoder = makeEncoderWith defaultOptions
+
+-- | Make an Encoder for a given data type, where all types names are qualified
+--   Usage: $(makeEncoderQualified ''MyDataType <: otherEncoders)
+makeEncoderQualified :: Name -> ExpQ
+makeEncoderQualified = makeEncoderWith (Options qualified)
+
+-- | Make an Encoder for a given data type, where all types names are qualified
+--   Usage: $(makeEncoderQualifiedLast ''MyDataType <: otherEncoders)
+makeEncoderQualifiedLast :: Name -> ExpQ
+makeEncoderQualifiedLast = makeEncoderWith (Options qualifyWithLastName)
+
+-- | Make an Encoder for a given data type with a specific set of options
+--   Usage: $(makeEncoderWith (Options qualify) ''MyDataType <: otherEncoders)
+makeEncoderWith :: Options -> Name -> ExpQ
+makeEncoderWith options encodedType = appE (varE $ mkName "fun") $ do
   info <- reify encodedType
   case info of
     -- \(ea::Encoder OldType) -> Encoder (\(NewType a) -> encode ea a)
     TyConI (NewtypeD _context _name _typeVars _kind (RecC constructor [(_, _, other)]) _deriving) -> do
-      lamE [sigP (varP $ mkName "ea") (appT (conT $ mkName "Encoder") (pure other))] (appE (conE $ mkName "Encoder") (lamE [conP constructor [varP $ mkName "a"]] (appE (appE (varE $ mkName "encode") (varE $ mkName "ea")) (varE $ mkName "a"))))
+      let cName = makeName options constructor
+      lamE [sigP (varP $ mkName "ea") (appT (conT $ mkName "Encoder") (pure other))] (appE (conE $ mkName "Encoder") (lamE [conP cName [varP $ mkName "a"]] (appE (appE (varE $ mkName "encode") (varE $ mkName "ea")) (varE $ mkName "a"))))
     -- \(e::Encoder OldType) -> Encoder (\(NewType a) -> encode e a)
     TyConI (NewtypeD _context _name _typeVars _kind (NormalC constructor [(_, other)]) _deriving) -> do
-      lamE [sigP (varP $ mkName "ea") (appT (conT $ mkName "Encoder") (pure other))] (appE (conE $ mkName "Encoder") (lamE [conP constructor [varP $ mkName "a"]] (appE (appE (varE $ mkName "encode") (varE $ mkName "ea")) (varE $ mkName "a"))))
+      let cName = makeName options constructor
+      lamE [sigP (varP $ mkName "ea") (appT (conT $ mkName "Encoder") (pure other))] (appE (conE $ mkName "Encoder") (lamE [conP cName [varP $ mkName "a"]] (appE (appE (varE $ mkName "encode") (varE $ mkName "ea")) (varE $ mkName "a"))))
     TyConI (DataD _context _name _typeVars _kind constructors _deriving) -> do
       case constructors of
         [] -> do
           qReport True "can not make an Encoder for an empty data type"
           fail "encoders creation failed"
-        [c] -> makeConstructorEncoder c
-        _ -> makeConstructorsEncoder constructors
+        [c] -> makeConstructorEncoder options c
+        _ -> makeConstructorsEncoder options constructors
     other -> do
       qReport True ("can only create encoders for an ADT, got: " <> show other)
       fail "encoders creation failed"
 
 -- | Make an Encoder for a data type with a single constructor
 -- \(e0::Encoder A0) (e1::Encoder A1) ... -> Encoder $ \(T a0 a1 ...) -> ObjectArray [encode e0 a0, encode e1 a1, ...]
-makeConstructorEncoder :: Con -> ExpQ
-makeConstructorEncoder c = do
-  ts <- typesOf c
-  cName <- nameOf c
-  let encoderParameters = (\(t, n) -> sigP (varP (mkName $ "e" <> show n)) (appT (conT $ mkName "Encoder") (pure t))) <$> zip ts [0 ..]
-  let params = conP (mkName $ show cName) $ (\(_, n) -> varP (mkName $ "a" <> show n)) <$> zip ts [0 ..]
-  let values = (\(_, n) -> appE (appE (varE $ mkName "encode") (varE (mkName $ "e" <> show n))) (varE (mkName $ "a" <> show n))) <$> zip ts [0 ..]
+makeConstructorEncoder :: Options -> Con -> ExpQ
+makeConstructorEncoder options c = do
+  types <- typesOf c
+  cName <- makeName options <$> nameOf c
+  let encoderParameters = (\(t, n) -> sigP (varP (mkName $ "e" <> show n)) (appT (conT $ mkName "Encoder") (pure t))) <$> zip types [0 ..]
+  let params = conP (mkName $ show cName) $ (\(_, n) -> varP (mkName $ "a" <> show n)) <$> zip types [0 ..]
+  let values = (\(_, n) -> appE (appE (varE $ mkName "encode") (varE (mkName $ "e" <> show n))) (varE (mkName $ "a" <> show n))) <$> zip types [0 ..]
   let encoded = appE (conE (mkName "ObjectArray")) (appE (varE (mkName "Data.Vector.fromList")) (listE values))
   lamE encoderParameters (appE (conE (mkName "Encoder")) (lamE [params] encoded))
 
@@ -133,23 +151,23 @@ makeConstructorEncoder c = do
 --    T0  -> ObjectArray [ObjectInt 0]
 --    T1 a0 a1 ... -> ObjectArray [ObjectInt 1, encode e0 a0, encode e1 a1, ...]
 --    T2 a2 a0 ... -> ObjectArray [ObjectInt 2, encode e2 a2, encode e0 a0, ...]
-makeConstructorsEncoder :: [Con] -> ExpQ
-makeConstructorsEncoder cs = do
+makeConstructorsEncoder :: Options -> [Con] -> ExpQ
+makeConstructorsEncoder options cs = do
   -- get the types of all the fields of all the constructors
-  ts <- nub . join <$> for cs typesOf
-  let encoderParameters = (\(t, n) -> sigP (varP (mkName $ "e" <> show n)) (appT (conT $ mkName "Encoder") (pure t))) <$> zip ts [0 ..]
-  matchClauses <- for (zip cs [0 ..]) (uncurry $ makeMatchClause ts)
+  types <- nub . join <$> for cs typesOf
+  let encoderParameters = (\(t, n) -> sigP (varP (mkName $ "e" <> show n)) (appT (conT $ mkName "Encoder") (pure t))) <$> zip types [0 ..]
+  matchClauses <- for (zip cs [0 ..]) (uncurry $ makeMatchClause options types)
   lamE encoderParameters (appE (conE (mkName "Encoder")) (lamCaseE (pure <$> matchClauses)))
 
 -- | Make the match clause for a constructor given
 --    - the list of all the encoder types
 --    - the constructor name
 --    - the constructor index in the list of all the constructors for the encoded data type
-makeMatchClause :: [Type] -> Con -> Integer -> MatchQ
-makeMatchClause allTypes c constructorIndex = do
+makeMatchClause :: Options -> [Type] -> Con -> Integer -> MatchQ
+makeMatchClause options allTypes c constructorIndex = do
   ts <- typesOf c
   constructorTypes <- indexConstructorTypes allTypes ts
-  cName <- nameOf c
+  cName <- makeName options <$> nameOf c
   let params = conP (mkName $ show cName) $ (\(_, n) -> varP (mkName $ "a" <> show n)) <$> constructorTypes
   let values = (\(_, n) -> appE (appE (varE $ mkName "encode") (varE (mkName $ "e" <> show n))) (varE (mkName $ "a" <> show n))) <$> constructorTypes
   let index = appE (conE $ mkName "ObjectInt") (litE (integerL constructorIndex))

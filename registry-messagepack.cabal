@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           registry-messagepack
-version:        0.1.0.4
+version:        0.2.0.0
 synopsis:       MessagePack encoders / decoders
 description:    This library provides encoders / decoders which can be easily customized for the MessagePack format.
 category:       Data
@@ -24,6 +24,7 @@ library
   exposed-modules:
       Data.Registry.MessagePack.Decoder
       Data.Registry.MessagePack.Encoder
+      Data.Registry.MessagePack.Options
       Data.Registry.MessagePack.TH
   other-modules:
       Paths_registry_messagepack
@@ -79,7 +80,12 @@ test-suite spec
       Test.Data.Registry.MessagePack.DataTypes
       Test.Data.Registry.MessagePack.DecoderSpec
       Test.Data.Registry.MessagePack.EncoderSpec
+      Test.Data.Registry.MessagePack.OptionsSpec
+      Test.Data.Registry.MessagePack.QualifiedDecodersSpec
+      Test.Data.Registry.MessagePack.QualifiedEncodersSpec
       Test.Data.Registry.MessagePack.RecursiveSpec
+      Test.Data.Registry.MessagePack.Reexported
+      Test.Data.Registry.MessagePack.ReexportedTypesSpec
       Paths_registry_messagepack
   hs-source-dirs:
       test

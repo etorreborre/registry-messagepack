@@ -161,3 +161,23 @@ The `makeDecoder` function makes the following functions:
 ```
 
 __NOTE__ this function does not support recursive data types (and much less mutually recursive data types)
+
+### Generation options
+
+When using TemplateHaskell to generate encoders and decoders, all type names will be generated as unqualified by default.
+You can instead opt for qualified names by specifying an `Options` value:
+```
+import Data.Registry.MessagePack.Encoder
+import Data.Registry.MessagePack.Options
+
+-- DataTypes defines the Email and Person data types
+import qualified DataTypes as DT
+import qualified Data.Common
+
+encoders =
+  <: $(makeEncoderWith defaultOptions {modifyTypeName = qualified} ''DT.Person)
+  <: $(makeEncoderWith defaultOptions {modifyTypeName = qualifiedAs "DT"} ''DT.Email)
+  <: $(makeEncoderWith defaultOptions {modifyTypeName = qualifiedWithLastName} ''Common.Age)
+```
+
+__NOTE__ only the data type and its constructors are qualified when you use `qualifiedXXX` functions
