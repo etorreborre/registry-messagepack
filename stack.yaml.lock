@@ -18,19 +18,19 @@ packages:
     git: https://github.com/RaitoBezarius/msgpack-haskell
     commit: 58fad1691b8d8105238b2febdd86f15377385fcc
 - completed:
-    hackage: registry-0.2.1.0@sha256:5f85d324bc02bf1980ea9f03a3138f81b222c40a4e1e5bc166571fd473ebf074,5893
+    hackage: registry-0.3.0.5@sha256:5235f08067c18269fe276ce7a2bc52d59fd1f347b1ad7459be498dd08fc17d3b,5833
     pantry-tree:
-      size: 4156
-      sha256: 8844e98abe58a373253c4ab7957134b2075516505301528ced101be3f43e343e
+      size: 3982
+      sha256: 25bb5d1315ff5040e11f11c4a884696faee21442db5db3d9b8ff240f830c9911
   original:
-    hackage: registry-0.2.1.0
+    hackage: registry-0.3.0.5
 - completed:
-    hackage: registry-hedgehog-0.6.0.0@sha256:e118131d0431c5a9a6f584b6497bd02a0cefb73b7a0bd412c5f052d239abb2d4,4273
+    hackage: registry-hedgehog-0.7.0.0@sha256:6e99313a5f6ea0cf2434f091b5d6a7e39789cc10de52d84d898a2b322e0455d6,4287
     pantry-tree:
       size: 1379
-      sha256: dd846a871cf40f7b7dbceae1ad4a131e5a43bfa66287bd87c09b6af17eb2423c
+      sha256: 5b6c83961e8078311f51e5f8e0d4d0999ecdab95fd5e88162825d1baf1aff7f4
   original:
-    hackage: registry-hedgehog-0.6.0.0
+    hackage: registry-hedgehog-0.7.0.0
 snapshots:
 - completed:
     size: 586296

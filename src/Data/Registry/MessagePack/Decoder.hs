@@ -13,7 +13,7 @@ module Data.Registry.MessagePack.Decoder where
 import Control.Monad.Fail
 import Data.List (nub)
 import Data.MessagePack
-import Data.Registry hiding (Result)
+import Data.Registry
 import Data.Registry.Internal.Types
 import Data.Registry.MessagePack.Options
 import Data.Registry.MessagePack.TH
