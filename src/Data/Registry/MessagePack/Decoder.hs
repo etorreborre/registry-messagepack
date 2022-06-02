@@ -12,7 +12,7 @@ module Data.Registry.MessagePack.Decoder where
 
 import Control.Monad.Fail
 import Data.List (nub)
-import Data.MessagePack
+import Data.MessagePack as MP
 import Data.Registry
 import Data.Registry.Internal.Types
 import Data.Registry.MessagePack.Options
@@ -25,7 +25,7 @@ import Prelude (String)
 
 -- * DECODER DATA TYPE
 
-newtype Decoder a = Decoder {decode :: Object -> Result a}
+newtype Decoder a = Decoder {decode :: Object -> MP.Result a}
 
 instance Functor Decoder where
   fmap f (Decoder d) = Decoder (fmap f . d)
