@@ -1,5 +1,5 @@
 name: registry-messagepack
-version: 0.3.0.0
+version: 0.3.0.1
 synopsis: MessagePack encoders / decoders
 
 description: This library provides encoders / decoders which can be easily customized for the MessagePack format.
