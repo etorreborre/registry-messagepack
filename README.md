@@ -14,7 +14,7 @@ be made out of the registry.
 #### Example
 
 Here is an example of creating encoders for a set of related data types:
-```
+```haskell
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
@@ -56,7 +56,7 @@ In the code above most encoders are created with `TemplateHaskell` and the `make
  - retrieved from a `MessagePack` instance: `messagePackEncoder @Text`, `messagePackEncoder @Int`
 
 Given the list of `encoders` an `Encoder Person` can be retrieved with:
-```
+```haskell
 let encoderPerson = make @(Encoder Person) encoders
 let encoded = encode encoderPerson (Person (Identifier 123) (Email "me@here.com")) :: Object
 ```
@@ -64,7 +64,7 @@ let encoded = encode encoderPerson (Person (Identifier 123) (Email "me@here.com"
 #### Generated encoders
 
 The `makeEncoder` function makes the following functions:
-```
+```haskell
 -- makeEncoder ''Identifier
 \(e::Encoder Int) -> Encoder $ \(Identifier n) -> encode e n
 
@@ -88,7 +88,7 @@ __NOTE__ this function does not support recursive data types (and much less mutu
 #### Example
 
 Here is an example of creating decoders for a set of related data types:
-```
+```haskell
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -132,7 +132,7 @@ In the code above most decoders are created with `TemplateHaskell` and the `make
  - retrieved from a `MessagePack` instance: `messagePackDecoder @Text`, `messagePackDecoder @Int`
 
 Given the list of `Decoders` an `Decoder Person` can be retrieved with:
-```
+```haskell
 let decoderPerson = make @(Decoder Person) decoders
 let decoded = decode decoderPerson $ ObjectArray [ObjectInt 123, ObjectStr "me@here.com"]
 ```
@@ -140,7 +140,7 @@ let decoded = decode decoderPerson $ ObjectArray [ObjectInt 123, ObjectStr "me@h
 #### Generated decoders
 
 The `makeDecoder` function makes the following functions:
-```
+```haskell
 -- makeDecoder ''Identifier
 \(d::Decoder Int) -> Decoder $ \o -> Identifier <$> decode d o
 
@@ -166,7 +166,7 @@ __NOTE__ this function does not support recursive data types (and much less mutu
 
 When using TemplateHaskell to generate encoders and decoders, all type names will be generated as unqualified by default.
 You can instead opt for qualified names by specifying an `Options` value:
-```
+```haskell
 import Data.Registry.MessagePack.Encoder
 import Data.Registry.MessagePack.Options
 
