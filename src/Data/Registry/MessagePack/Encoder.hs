@@ -15,7 +15,6 @@ import Data.Functor.Contravariant
 import Data.List (nub)
 import Data.MessagePack
 import Data.Registry
-import Data.Registry.Internal.Types
 import Data.Registry.MessagePack.Options
 import Data.Registry.MessagePack.TH
 import Language.Haskell.TH

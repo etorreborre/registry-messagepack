@@ -5,42 +5,28 @@
 
 packages:
 - completed:
-    hackage: protolude-0.3.1@sha256:1cc9e5a5c26c33a43c52b554443dd9779fef13974eaa0beec7ca6d2551b400da,2647
+    hackage: int-cast-0.2.0.0@sha256:06820c1c5335100c5021e01314cd498e4d248582622c36d8e7203fa4341cb6d0,1668
     pantry-tree:
-      size: 1645
-      sha256: 6452a6ca8d395f7d810139779bb0fd16fc1dbb00f1862630bc08ef5a100430f9
+      sha256: 14ac1ac61570594503174ad96e61168e55fa3f562975c028afd854656bac11d9
+      size: 316
   original:
-    hackage: protolude-0.3.1
+    hackage: int-cast-0.2.0.0
 - completed:
-    subdir: msgpack
+    commit: 58fad1691b8d8105238b2febdd86f15377385fcc
+    git: https://github.com/RaitoBezarius/msgpack-haskell
     name: msgpack
-    version: 1.2.0.0
-    git: https://github.com/RaitoBezarius/msgpack-haskell
     pantry-tree:
-      size: 2330
       sha256: 0126663a7125ebae6c6851abc99d569e62500a3d3843be3ad499a9ad6a4d7579
-    commit: 58fad1691b8d8105238b2febdd86f15377385fcc
-  original:
+      size: 2330
     subdir: msgpack
-    git: https://github.com/RaitoBezarius/msgpack-haskell
+    version: 1.2.0.0
+  original:
     commit: 58fad1691b8d8105238b2febdd86f15377385fcc
-- completed:
-    hackage: registry-0.3.0.7@sha256:3fc3177c886e929f82bae44abb67743bbca3d971971e1df272f2734efb1892ed,5833
-    pantry-tree:
-      size: 3982
-      sha256: 2a745b0445175731b9c6b045202e9db1ff403cb36780ff035a37ea2faae53d11
-  original:
-    hackage: registry-0.3.0.7
-- completed:
-    hackage: registry-hedgehog-0.7.0.1@sha256:9b39b6a5995418538ab5c1789277086b12b3a2670009c83237d24bbd033ca963,4287
-    pantry-tree:
-      size: 1379
-      sha256: 6a85939abb88c909e9f9516599d81d1300e9a360a833a55e8a3e58c6b4310269
-  original:
-    hackage: registry-hedgehog-0.7.0.1
+    git: https://github.com/RaitoBezarius/msgpack-haskell
+    subdir: msgpack
 snapshots:
 - completed:
-    size: 618509
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/10.yaml
-    sha256: 005f204647467d65c4ab549a5ca35d54b3d90a84a99a4ffc5d421a4018854fe2
-  original: lts-19.10
+    sha256: 3f8b2c49f068dd80cbd988d987db06f5ae928dee88e32f1fe84e90f9c9186a43
+    size: 643193
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/nightly/2022/9/29.yaml
+  original: nightly-2022-09-29

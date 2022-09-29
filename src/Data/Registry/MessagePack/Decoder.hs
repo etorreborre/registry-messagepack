@@ -14,7 +14,6 @@ import Control.Monad.Fail
 import Data.List (nub)
 import Data.MessagePack as MP
 import Data.Registry
-import Data.Registry.Internal.Types
 import Data.Registry.MessagePack.Options
 import Data.Registry.MessagePack.TH
 import qualified Data.Vector as Vector
