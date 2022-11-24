@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           registry-messagepack
-version:        0.3.1.0
+version:        0.4.0.0
 synopsis:       MessagePack encoders / decoders
 description:    This library provides encoders / decoders which can be easily customized for the MessagePack format.
 category:       Data
@@ -65,7 +65,7 @@ library
     , containers >=0.2 && <1
     , msgpack ==1.*
     , protolude ==0.3.*
-    , registry ==0.3.*
+    , registry >=0.4 && <1
     , template-haskell >=2.13 && <3.0
     , text ==1.*
     , transformers >=0.5 && <2
@@ -124,7 +124,7 @@ test-suite spec
     , containers >=0.2 && <1
     , msgpack ==1.*
     , protolude ==0.3.*
-    , registry ==0.3.*
+    , registry >=0.4 && <1
     , registry-hedgehog
     , registry-messagepack
     , tasty

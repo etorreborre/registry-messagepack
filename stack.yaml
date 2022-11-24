@@ -1,4 +1,4 @@
-resolver: nightly-2022-09-29
+resolver: lts-20.1
 
 packages:
 - '.'
@@ -9,7 +9,11 @@ extra-deps:
     commit: 58fad1691b8d8105238b2febdd86f15377385fcc
     subdirs:
       - msgpack
+  - registry-0.4.0.0
+  - registry-hedgehog-0.8.0.0
 
 flags: {}
 
 extra-package-dbs: []
+
+allow-newer: true
